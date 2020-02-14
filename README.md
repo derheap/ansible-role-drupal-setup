@@ -99,6 +99,23 @@ drupal_install_profile : standard
     - { role: derheap.drupal-setup }
 ~~~~
 
+Contents of `vars/drupal.yml`:
+
+~~~~
+---
+drupal_domain: example.com
+drupal_trusted_host_pattern: 'example\.com'
+drupal_base_dir: "/srv/www/{{ drupal_domain }}"
+
+drupal_deploy_group: deploy
+drupal_deploy_name: exampleproject
+
+drupal_db_user: drupal
+drupal_db_password: drupal
+drupal_db_name: drupal
+drupal_db_backend: mysql
+~~~~
+
 ## Role Defaults
 
 ~~~~
