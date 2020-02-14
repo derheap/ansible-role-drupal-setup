@@ -132,3 +132,8 @@ drupal_db_host: "127.0.0.1"
 
 drupal_install_profile : standard
 ~~~~
+
+
+## Sources
+
+The role is based on code from an role to deploy Symfony apps from [Servergroove](https://github.com/servergrove/ansible-symfony2/).
