@@ -136,4 +136,4 @@ drupal_install_profile : standard
 
 ## Sources
 
-The role is based on code from an role to deploy Symfony apps from [Servergroove](https://github.com/servergrove/ansible-symfony2/).
+The role is based on code from [Servergroove](https://github.com/servergrove/ansible-symfony2/) – a role to deploy Symfony apps.
