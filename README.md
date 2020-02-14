@@ -22,7 +22,7 @@ example.com/
             └── settings.php
 ~~~~
 
-The shared directory holds the data to be shared with all releases. Mainly the `site`directory
+The shared directory holds the data to be shared with all releases – mainly the `site`directory.
 The `site` directory is later symlinked into the current release.
 
 ### Permissions
