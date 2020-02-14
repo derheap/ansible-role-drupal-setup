@@ -758,7 +758,7 @@ $settings['entity_update_backup'] = TRUE;
 {% if drupal_trusted_host_pattern is defined %}
 $settings['trusted_host_patterns'] = [ '^{{ drupal_trusted_host_pattern }}$'];
 {% endif %}
-$config_directories['sync'] = '{{ drupal_config_folder }}';
+$config_directories['sync'] = '{{ drupal_deploy_dir }}/{{ drupal_config_folder }}';
 $databases['default']['default'] = array (
   'database' => '{{ drupal_db_name }}',
   'username' => '{{ drupal_db_user }}',
