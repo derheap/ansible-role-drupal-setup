@@ -1,0 +1,167 @@
+---
+
+# Taken and modified from  https://github.com/servergrove/ansible-symfony2/
+
+- name: Check/define release name.
+  set_fact: _release="{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+- name: Set current_release.
+  set_fact: _current_release="{{_release}}_{{drupal_deploy_version}}"
+
+- name: Set current_release_dir.
+  set_fact: _current_release_dir="{{drupal_base_dir}}/releases/{{drupal_project_current_release}}"
+
+- name: Set _shared_dir.
+  set_fact: _shared_dir="{{drupal_base_dir}}/shared"
+
+- name: Become root?
+  set_fact: _become="{{ drupal_core_owner_become | default('false') }}"
+
+# Deploy only
+#- name: Set _drupal_root.
+ # set_fact: _drupal_root="{{ drupal_base_dir }}/current/{{ drupal_public_folder }}"
+
+# - name: Set config_dir.
+#   set_fact: _config_dir="{{_current_release_dir}}/{{ drupal_config_folder }}"
+# - name: Set drupal_project_new_public_dir.
+#   set_fact: drupal_project_new_public_dir="{{drupal_project_current_release_dir}}/{{drupal_project_public_folder}}"
+
+- name: Add drupal deploy group
+  group: name="{{ drupal_deploy_group }}" state=present
+  become: true
+  when:  _become
+
+- name: Add web server group
+  group: name="{{ drupal_server_group }}" state=present
+  become: true
+  when:  _become
+
+- name: Add groups to user
+  user: name="{{ drupal_core_owner }}"
+        groups="{{ drupal_deploy_group }}, {{ drupal_server_group }}"
+        append=yes
+  become: true
+  when: _become
+
+# First step create www dir as root
+- name: Create www directory.
+  file:
+    state: directory
+    path: "{{myloopitem.path}}"
+    mode: "0755"
+  with_items:
+    - { path: "{{drupal_base_dir}}" }
+  loop_control:
+    loop_var: myloopitem
+  become: "{{ drupal_core_owner_become }}"
+
+# All files belong to drupal_core_owner:drupal_deploy_group.
+# For example ada:deploy.
+- name: Create directories for release and shared data.
+  file:
+    state: directory
+    path: "{{myloopitem.path}}"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: "0755"
+  with_items:
+    - { path: "{{drupal_base_dir}}" }
+    - { path: "{{drupal_base_dir}}/releases" }
+    - { path: "{{_shared_dir}}" }
+    - { path: "{{_shared_dir}}/sites" }
+    - { path: "{{_shared_dir}}/sites/default" }
+    - { path: "{{_shared_dir}}/sites/default/files" }
+  loop_control:
+    loop_var: myloopitem
+  become: "{{ drupal_core_owner_become }}"
+
+
+# Set sticky group for deploy dir and releases dir
+- name: Make new symlinks writable by group.
+  file:
+    state: directory
+    path: "{{drupal_base_dir}}"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: "02775"
+    recurse: "no"
+  become: "{{ drupal_core_owner_become }}"
+
+- name: Make releases writable by group.
+  file:
+    state: directory
+    path: "{{drupal_base_dir}}/releases"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: "02775"
+    recurse: "yes"
+  become: "{{ drupal_core_owner_become }}"
+
+# Only /sites/default/files is owned by the webserver user.
+- name: Set write permission to /sites/default/files
+  file:
+    state: directory
+    path: "{{_shared_dir}}/sites/default/files"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_server_group }}"
+    mode: "0775"
+    recurse: "yes"
+  become: "{{ drupal_core_owner_become }}"
+
+# Update settings
+- name: Create settings.php in /shared/sites/default/
+  template:
+    src: settings.php.j2
+    dest: "{{_shared_dir}}/sites/default/settings.php"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: 0644
+
+- name: Init bare repository
+  shell: "git init --bare --shared=group {{ drupal_deploy_repo }}"
+  become: "{{ drupal_core_owner_become }}"
+  when: drupal_deploy_create_repo
+
+# Add sticky group
+- name: Set write permission to git repo
+  file:
+    state: directory
+    path: "{{ drupal_deploy_repo }}"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: "02775" # New files are owned by group
+    recurse: "yes"
+  become: "{{ drupal_core_owner_become }}"
+  when: drupal_deploy_create_repo
+
+
+- name: Set release date for a dummy release.
+  set_fact: _dummy_release="{{ _release }}_dummy"
+
+- name: Set release_dir for a dummy release.
+  set_fact: _dummy_release_dir="{{ drupal_base_dir }}/releases/{{_dummy_release}}"
+
+- name: Create release directory for a dummy release.
+  file:
+    path: "{{ _dummy_release_dir }}/{{ drupal_public_folder }}"
+    state: directory
+    recurse: yes
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: 0755
+
+- name: Create index.html for a dummy release.
+  template:
+    src: index.html.j2
+    dest: "{{ _dummy_release_dir }}/{{ drupal_public_folder }}/index.html"
+    owner: "{{ drupal_core_owner }}"
+    group: "{{ drupal_deploy_group }}"
+    mode: 0644
+
+- name: Create symlink for release.
+  file:
+    state: link
+    src: "{{ _dummy_release_dir }}"
+    path: "{{ drupal_base_dir }}/current"
+
+

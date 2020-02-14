@@ -1,0 +1,30 @@
+---
+# Var from geerlingguy/ansible-role-drupal
+drupal_domain: example.com
+
+# Variables specific for this role
+#drupal_trusted_host_pattern: 'example\.com'
+drupal_base_dir: "/srv/www/{{ drupal_domain }}"
+drupal_config_folder: config/sync
+drupal_deploy_create_repo: true
+drupal_deploy_group: drupal
+drupal_deploy_name: mydrupalproject
+drupal_server_group: "www-data"
+# To enable compatibility with some old installations
+drupal_public_folder: "web"
+
+# Vars from geerlingguy/ansible-role-drupal
+drupal_deploy_repo: "/srv/repos/{{ drupal_deploy_name }}.git"
+drupal_deploy_version: master
+drupal_deploy_dir: "{{ drupal_base_dir }}/current"
+drupal_core_path: "{{ drupal_deploy_dir }}/{{ drupal_public_folder }}"
+drupal_core_owner: "{{ ansible_ssh_user | default(ansible_env.SUDO_USER, true) | default(ansible_env.USER, true) | default(ansible_user_id) }}"
+drupal_core_owner_become: true
+
+#drupal_db_user: drupal
+#drupal_db_password: drupal
+#drupal_db_name: drupal
+drupal_db_backend: mysql
+drupal_db_host: "127.0.0.1"
+
+drupal_install_profile : standard
