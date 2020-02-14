@@ -4,6 +4,8 @@ This role sets up files and folders for a Drupal 8 site – with a folder struct
 
 The folder structure is the prerequiste for a deployment of the Drupal site with Ansible.
 
+Rename this role to `derheap.drupal-setup` after cloning.
+
 ## Folder structure
 
 To enable deployments and configuration updates without affecting the running Drupal 8 site, a folder structure analog to [Capistrano](https://capistranorb.com/documentation/getting-started/structure/) is used.
