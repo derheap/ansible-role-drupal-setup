@@ -8,8 +8,9 @@
 - name: Set current_release.
   set_fact: _current_release="{{_release}}_{{drupal_deploy_version}}"
 
-- name: Set current_release_dir.
-  set_fact: _current_release_dir="{{drupal_base_dir}}/releases/{{drupal_project_current_release}}"
+# Deploy only
+# - name: Set current_release_dir.
+#   set_fact: _current_release_dir="{{drupal_base_dir}}/releases/{{_current_release}}"
 
 - name: Set _shared_dir.
   set_fact: _shared_dir="{{drupal_base_dir}}/shared"
